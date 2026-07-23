@@ -1,4 +1,4 @@
-name: CI/CD Backend LISA
+name: CI Backend
 
 on:
   push:
@@ -24,27 +24,3 @@ jobs:
 
       - name: Build
         run: ./mvnw clean package -DskipTests
-
-  # ─── CD : Deploy (main uniquement) ────────────────
-  deploy:
-    name: Deploy to Dokku
-    runs-on: ubuntu-latest
-    needs: ci
-    if: github.ref == 'refs/heads/main'
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DOKKU_SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H ${{ secrets.DOKKU_HOST }} >> ~/.ssh/known_hosts
-
-      - name: Deploy to Dokku
-        run: |
-          git remote add dokku dokku@${{ secrets.DOKKU_HOST }}:lisa-backend
-          git push dokku main --force
